@@ -7,6 +7,9 @@
 
 import SwiftUI
 
+/// A destination an app pushes onto a `ManagedNavigationStack`.
+/// A conforming type names the screen each route shows, the environment key path its stack's
+/// path is placed at, and the background and tint every screen in the stack gets.
 public protocol NavigationRouteProtocol: Hashable {
     associatedtype Screen: View
 

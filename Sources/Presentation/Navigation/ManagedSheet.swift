@@ -8,6 +8,8 @@
 
 import SwiftUI
 
+/// A sheet that hosts its content in its own `ManagedNavigationStack`.
+/// It owns the stack's path, so the path dies with the sheet, and supplies the close button.
 public struct ManagedSheet<Route: NavigationRouteProtocol, Content: View>: View {
     @Environment(\.dismiss) private var dismiss
 
