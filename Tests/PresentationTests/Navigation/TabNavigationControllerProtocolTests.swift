@@ -6,6 +6,7 @@
 //
 
 import Presentation
+import SwiftUI
 import Testing
 
 private enum TestTab: Hashable {
@@ -19,7 +20,7 @@ private final class TestTabNavigationController: TabNavigationControllerProtocol
 
     private(set) var poppedTabs: [TestTab] = []
 
-    func popToRoot(_ tab: TestTab) {
+    func popToRoot(_ tab: TestTab, horizontalSizeClass: UserInterfaceSizeClass?) {
         poppedTabs.append(tab)
     }
 }
@@ -29,7 +30,7 @@ struct TabNavigationControllerProtocolTests {
     @Test func selectingADifferentTabSelectsItWithoutPopping() {
         let controller = TestTabNavigationController()
 
-        controller.selectTab(.second)
+        controller.selectTab(.second, horizontalSizeClass: .regular)
 
         #expect(controller.selectedTab == .second)
         #expect(controller.poppedTabs.isEmpty, "Switching tabs must not pop any tab.")
@@ -38,7 +39,7 @@ struct TabNavigationControllerProtocolTests {
     @Test func selectingTheCurrentTabPopsItToRoot() {
         let controller = TestTabNavigationController()
 
-        controller.selectTab(.first)
+        controller.selectTab(.first, horizontalSizeClass: .regular)
 
         #expect(controller.selectedTab == .first)
         #expect(controller.poppedTabs == [.first])
