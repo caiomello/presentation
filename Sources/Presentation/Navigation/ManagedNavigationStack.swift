@@ -8,7 +8,8 @@
 
 import SwiftUI
 
-/// The navigation stack an app builds every screen hierarchy in, tabs and sheets alike.
+/// The navigation stack an app builds every stack of screens in: tabs, sheets, and the detail column
+/// of a `ManagedNavigationSplitView`.
 /// It resolves each pushed route through `screen`, gives every screen the route type's
 /// `backgroundColor` and `tintColor`, and places the path in the environment at `pathKey`,
 /// so any screen in the stack can push with `navigate(to:)`.
