@@ -19,7 +19,7 @@ public struct ManagedNavigationSplitView<Route: NavigationRouteProtocol, Sidebar
     private let path: Binding<[Route]>
     private let sidebar: Sidebar
 
-    @State private var preferredCompactColumn: NavigationSplitViewColumn
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     public init(
         selection: Binding<Route?>,
@@ -29,13 +29,12 @@ public struct ManagedNavigationSplitView<Route: NavigationRouteProtocol, Sidebar
         self.selection = selection
         self.path = path
         self.sidebar = sidebar()
-        _preferredCompactColumn = State(initialValue: selection.wrappedValue == nil ? .sidebar : .detail)
     }
 
     public var body: some View {
         NavigationSplitView(
             columnVisibility: .constant(.all),
-            preferredCompactColumn: $preferredCompactColumn
+            preferredCompactColumn: preferredCompactColumn
         ) {
             sidebar
                 .scrollContentBackground(.hidden)
@@ -57,12 +56,21 @@ public struct ManagedNavigationSplitView<Route: NavigationRouteProtocol, Sidebar
         }
         .onChange(of: selection.wrappedValue) {
             path.wrappedValue = []
-            preferredCompactColumn = selection.wrappedValue == nil ? .sidebar : .detail
         }
-        .onChange(of: preferredCompactColumn) {
-            if preferredCompactColumn == .sidebar {
-                selection.wrappedValue = nil
+    }
+
+    private var preferredCompactColumn: Binding<NavigationSplitViewColumn> {
+        Binding(
+            get: {
+                selection.wrappedValue == nil ? .sidebar : .detail
+            },
+            set: { column in
+                // SwiftUI reports the sidebar on every pop in the detail stack, on any width, before it shortens
+                // `path`: only a report on compact width with `path` already empty is going back to the sidebar.
+                if column == .sidebar && path.wrappedValue.isEmpty && horizontalSizeClass == .compact {
+                    selection.wrappedValue = nil
+                }
             }
-        }
+        )
     }
 }
