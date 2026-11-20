@@ -14,6 +14,8 @@ public struct CustomAsyncImage: View {
 
     @State private var loadedImage: LoadedImage?
 
+    @Environment(\.imageURLSession) private var imageURLSession
+
     public init(url: URL?) {
         self.url = url
     }
@@ -32,7 +34,7 @@ public struct CustomAsyncImage: View {
         // Not AsyncImage: it never retries a load cancelled by a disappearance, and SwiftUI hides and shows a split
         // view's new root while it pops. `.task` restarts with every appearance, so a cut-short load runs again.
         .task(id: url) {
-            guard let url, loadedImage?.url != url, let image = try? await image(at: url) else { return }
+            guard let url, loadedImage?.url != url, let image = try? await image(at: url, session: imageURLSession) else { return }
 
             withAnimation(.easeOut(duration: 0.2)) {
                 loadedImage = LoadedImage(url: url, image: image)
@@ -41,9 +43,9 @@ public struct CustomAsyncImage: View {
     }
 
     @concurrent
-    private nonisolated func image(at url: URL) async throws -> CGImage? {
+    private nonisolated func image(at url: URL, session: URLSession) async throws -> CGImage? {
         let request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad)
-        let (data, _) = try await URLSession.shared.data(for: request)
+        let (data, _) = try await session.data(for: request)
 
         guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
 
@@ -54,6 +56,11 @@ public struct CustomAsyncImage: View {
 private struct LoadedImage {
     let url: URL
     let image: CGImage
+}
+
+extension EnvironmentValues {
+    /// The session `CustomAsyncImage` loads through, and so the cache it reads.
+    @Entry public var imageURLSession: URLSession = .shared
 }
 
 #Preview {
