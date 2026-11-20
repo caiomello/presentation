@@ -43,6 +43,7 @@ public struct ManagedNavigationSplitView<Route: NavigationRouteProtocol, Sidebar
                 .tint(Route.tintColor)
                 .environment(Route.pathKey, path)
                 .environment(Route.selectionKey, sidebarSelection)
+                .environment(\.isSidebarBesideDetail, horizontalSizeClass == .regular)
                 .toolbar(removing: .sidebarToggle)
         } detail: {
             ManagedNavigationStack(path: path) {
@@ -90,4 +91,43 @@ public struct ManagedNavigationSplitView<Route: NavigationRouteProtocol, Sidebar
             }
         )
     }
+}
+
+extension View {
+    /// Selects `route` in the enclosing `ManagedNavigationSplitView` on regular width whenever nothing
+    /// is selected. A sidebar passes its first item, or `nil` for an empty list.
+    public func initialSelection<Route: NavigationRouteProtocol>(_ route: Route?) -> some View {
+        modifier(InitialSelectionModifier(route: route))
+    }
+}
+
+private struct InitialSelectionModifier<Route: NavigationRouteProtocol>: ViewModifier {
+    let route: Route?
+
+    @Environment(Route.selectionKey) private var selection
+    @Environment(\.isSidebarBesideDetail) private var isSidebarBesideDetail
+
+    func body(content: Content) -> some View {
+        content
+            .onChange(of: route, initial: true) {
+                selectIfNeeded()
+            }
+            .onChange(of: selection.wrappedValue == nil) {
+                selectIfNeeded()
+            }
+            .onChange(of: isSidebarBesideDetail) {
+                selectIfNeeded()
+            }
+    }
+
+    private func selectIfNeeded() {
+        guard isSidebarBesideDetail, selection.wrappedValue == nil, let route else { return }
+
+        selection.wrappedValue = route
+    }
+}
+
+extension EnvironmentValues {
+    /// The split view's own width class: the sidebar column reports compact even beside the detail.
+    @Entry var isSidebarBesideDetail = false
 }
