@@ -21,10 +21,6 @@ public struct ManagedNavigationSplitView<Route: NavigationRouteProtocol, Sidebar
 
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
-    // SwiftUI tears down a root swapped in while it pops the detail stack, cancelling its loading: a selection made
-    // with screens pushed pops first, and the root follows once the pop reveals it.
-    @State private var rootRoute: Route?
-
     public init(
         selection: Binding<Route?>,
         path: Binding<[Route]>,
@@ -48,27 +44,18 @@ public struct ManagedNavigationSplitView<Route: NavigationRouteProtocol, Sidebar
                 .toolbar(removing: .sidebarToggle)
         } detail: {
             ManagedNavigationStack(path: path) {
-                Group {
-                    if let route = rootRoute {
-                        route.screen
-                            .id(route)
-                    } else {
-                        ContentUnavailableView {
-                            Text("No Selection")
-                        }
+                if let route = selection.wrappedValue {
+                    route.screen
+                        .id(route)
+                } else {
+                    ContentUnavailableView {
+                        Text("No Selection")
                     }
-                }
-                .onAppear {
-                    rootRoute = selection.wrappedValue
                 }
             }
         }
-        .onChange(of: selection.wrappedValue, initial: true) {
-            if path.wrappedValue.isEmpty {
-                rootRoute = selection.wrappedValue
-            } else {
-                path.wrappedValue = []
-            }
+        .onChange(of: selection.wrappedValue) {
+            path.wrappedValue = []
         }
     }
 
