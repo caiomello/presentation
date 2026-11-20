@@ -12,8 +12,9 @@ import SwiftUI
 /// on `path`, rooted at the selected route's screen, or a "No Selection" placeholder when nothing
 /// is selected. Selecting another route empties `path`. The sidebar is always shown on regular
 /// width, with no toggle. On compact width, a selection shows the detail and going back to the
-/// sidebar clears it. It gets the route type's `backgroundColor` and `tintColor`, and `path` in
-/// the environment at `pathKey`.
+/// sidebar clears it. It gets the route type's `backgroundColor` and `tintColor`, `path` in the
+/// environment at `pathKey`, and the selection at `selectionKey`, where selecting the route already
+/// selected empties `path` too.
 public struct ManagedNavigationSplitView<Route: NavigationRouteProtocol, Sidebar: View>: View {
     private let selection: Binding<Route?>
     private let path: Binding<[Route]>
@@ -41,6 +42,7 @@ public struct ManagedNavigationSplitView<Route: NavigationRouteProtocol, Sidebar
                 .background(Route.backgroundColor.ignoresSafeArea())
                 .tint(Route.tintColor)
                 .environment(Route.pathKey, path)
+                .environment(Route.selectionKey, sidebarSelection)
                 .toolbar(removing: .sidebarToggle)
         } detail: {
             ManagedNavigationStack(path: path) {
@@ -57,6 +59,21 @@ public struct ManagedNavigationSplitView<Route: NavigationRouteProtocol, Sidebar
         .onChange(of: selection.wrappedValue) {
             path.wrappedValue = []
         }
+    }
+
+    private var sidebarSelection: Binding<Route?> {
+        Binding(
+            get: {
+                selection.wrappedValue
+            },
+            set: { route in
+                if route == selection.wrappedValue {
+                    path.wrappedValue = []
+                } else {
+                    selection.wrappedValue = route
+                }
+            }
+        )
     }
 
     private var preferredCompactColumn: Binding<NavigationSplitViewColumn> {
