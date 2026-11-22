@@ -158,14 +158,14 @@ private final class ImageScrollView: UIScrollView, UIScrollViewDelegate {
 
         let tappedPoint = recognizer.location(in: imageView)
         let zoomedSize = CGSize(width: bounds.width / maximumZoomScale, height: bounds.height / maximumZoomScale)
-        let zoomedRect = CGRect(
+        let zoomedRectangle = CGRect(
             x: tappedPoint.x - zoomedSize.width / 2,
             y: tappedPoint.y - zoomedSize.height / 2,
             width: zoomedSize.width,
             height: zoomedSize.height
         )
 
-        zoom(to: zoomedRect, animated: true)
+        zoom(to: zoomedRectangle, animated: true)
     }
 }
 #endif
