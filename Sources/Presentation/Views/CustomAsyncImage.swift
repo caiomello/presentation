@@ -12,12 +12,15 @@ import SwiftUI
 public struct CustomAsyncImage: View {
     public let url: URL?
 
+    private let onLoad: ((CGImage) -> Void)?
+
     @State private var loadedImage: LoadedImage?
 
     @Environment(\.imageURLSession) private var imageURLSession
 
-    public init(url: URL?) {
+    public init(url: URL?, onLoad: ((CGImage) -> Void)? = nil) {
         self.url = url
+        self.onLoad = onLoad
     }
 
     public var body: some View {
@@ -34,10 +37,16 @@ public struct CustomAsyncImage: View {
         // Not AsyncImage: it never retries a load cancelled by a disappearance, and SwiftUI hides and shows a split
         // view's new root while it pops. `.task` restarts with every appearance, so a cut-short load runs again.
         .task(id: url) {
-            guard let url, loadedImage?.url != url, let image = try? await image(at: url, session: imageURLSession) else { return }
+            guard
+                let url,
+                loadedImage?.url != url,
+                let image = try? await image(at: url, session: imageURLSession),
+                !Task.isCancelled
+            else { return }
 
             withAnimation(.easeOut(duration: 0.2)) {
                 loadedImage = LoadedImage(url: url, image: image)
+                onLoad?(image)
             }
         }
     }
