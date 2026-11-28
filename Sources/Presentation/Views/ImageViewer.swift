@@ -93,6 +93,7 @@ private final class ImageScrollView: UIScrollView, UIScrollViewDelegate {
         super.init(frame: .zero)
 
         contentInsetAdjustmentBehavior = .never
+        contentAlignmentPoint = CGPoint(x: 0.5, y: 0.5)
         contentSize = imageView.bounds.size
         delegate = self
         addSubview(imageView)
@@ -119,10 +120,6 @@ private final class ImageScrollView: UIScrollView, UIScrollViewDelegate {
         imageView
     }
 
-    func scrollViewDidZoom(_ scrollView: UIScrollView) {
-        centerImage()
-    }
-
     private func resetZoomToFit() {
         let imageSize = imageView.bounds.size
 
@@ -133,21 +130,6 @@ private final class ImageScrollView: UIScrollView, UIScrollViewDelegate {
         minimumZoomScale = fitScale
         maximumZoomScale = fitScale * 3
         zoomScale = fitScale
-
-        centerImage()
-        contentOffset = CGPoint(x: -contentInset.left, y: -contentInset.top)
-    }
-
-    private func centerImage() {
-        let horizontalInset = max(0, (bounds.width - contentSize.width) / 2)
-        let verticalInset = max(0, (bounds.height - contentSize.height) / 2)
-
-        contentInset = UIEdgeInsets(
-            top: verticalInset,
-            left: horizontalInset,
-            bottom: verticalInset,
-            right: horizontalInset
-        )
     }
 
     @objc private func handleDoubleTap(_ recognizer: UITapGestureRecognizer) {
